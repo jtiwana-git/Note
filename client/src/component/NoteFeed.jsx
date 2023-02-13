@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import React from 'react';
-import Note from './Note';
+
 import styled from 'styled-components';
 
 const NoteWrapper = styled.div`

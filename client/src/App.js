@@ -15,6 +15,7 @@ import Home from './pages/Home';
 import MyNotes from './pages/MyNotes';
 import Favorites from './pages/Favorites';
 import NotePage from './pages/NotePage';
+import SignUp from './pages/SignUp';
 
 const httpLink = createHttpLink({
   uri: '/graphql',
@@ -44,6 +45,7 @@ function App() {
         <GlobalStyle />
         <Layout>
           <Routes>
+            <Route path="/signup" element={<SignUp />} />
             <Route path="/mynotes" element={<MyNotes />} />
             <Route path="/" element={<Home />} />
             <Route path="/favorites" element={<Favorites />} />
