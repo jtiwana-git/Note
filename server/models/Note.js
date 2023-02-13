@@ -1,5 +1,6 @@
-const { Schema, model, Mongoose } = require("mongoose");
-const { GraphQLDateTime } = require("graphql-iso-date");
+const { Schema, model, Mongoose } = require('mongoose');
+const { GraphQLDateTime } = require('graphql-iso-date');
+const moment = require('moment');
 
 const noteSchema = new Schema(
   {
@@ -11,12 +12,13 @@ const noteSchema = new Schema(
     },
     author: {
       type: Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
       required: true,
     },
     createdAt: {
       type: Date,
       default: Date.now,
+      get: (date) => date.toLocaleDateString('MM/dd/yyyy'),
     },
     updatedAt: {
       type: Date,
@@ -29,7 +31,7 @@ const noteSchema = new Schema(
     favoritedBy: [
       {
         type: Schema.Types.ObjectId,
-        ref: "User",
+        ref: 'User',
       },
     ],
   },
@@ -38,6 +40,6 @@ const noteSchema = new Schema(
   }
 );
 
-const Note = model("Note", noteSchema);
+const Note = model('Note', noteSchema);
 
 module.exports = Note;

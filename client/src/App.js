@@ -14,6 +14,7 @@ import Layout from './component/Layout';
 import Home from './pages/Home';
 import MyNotes from './pages/MyNotes';
 import Favorites from './pages/Favorites';
+import NotePage from './pages/NotePage';
 
 const httpLink = createHttpLink({
   uri: '/graphql',
@@ -46,6 +47,7 @@ function App() {
             <Route path="/mynotes" element={<MyNotes />} />
             <Route path="/" element={<Home />} />
             <Route path="/favorites" element={<Favorites />} />
+            <Route path="/note/:id" element={<NotePage />} />
             <Route
               path="*"
               element={<h1 className="display-2">Wrong page!</h1>}

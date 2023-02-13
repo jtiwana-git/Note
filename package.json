@@ -4,8 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node server/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "react-scripts --openssl-legacy-provider start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "src": "cd client && npm start",
+    "server": "cd server && node server.js",
+    "start_full_app": "concurrently \"npm run server\" \"npm run src\""
   },
   "repository": {
     "type": "git",
