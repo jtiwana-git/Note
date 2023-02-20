@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
 import Button from '../component/Button';
-import { useMutation } from '@apollo/client';
+import { useMutation, useApolloClient } from '@apollo/client';
 import { SIGNUP_USER } from '../utils/mutations';
 
+import UserForm from '../component/UserForm';
 import Auth from '../utils/auth';
 
 const Wrapper = styled.div`
@@ -30,16 +31,17 @@ const Form = styled.form`
 // need to add auth file and refactor code below
 
 const SignUp = (props) => {
-  const [values, setValues] = useState();
-
-  const [signUp, { loading, error }] = useMutation(SIGNUP_USER);
-
-  const onChange = (event) => {
-    setValues({ ...values, [event.target.name]: event.target.value });
-  };
-
   useEffect(() => {
     document.title = 'Sign Up - NOTEDLY';
+  });
+  const [values, setValues] = useState();
+
+  const client = useApolloClient();
+  const [signUp, { loading, error }] = useMutation(SIGNUP_USER, {
+    onCompleted: (data) => {
+      Auth.login(data.signUp.token);
+      client.writeQuery({ data: { isLoggedIn: true } });
+    },
   });
 
   const onSubmitData = async (event) => {
@@ -56,53 +58,13 @@ const SignUp = (props) => {
     }
   };
 
-  //  const onSubmitData = (event) => {
-  //   event.preventDefault();
-  //   console.log(values);
-
-  //   try {
-  //     const { data } = await SignUp({
-  //       variables: { ...values },
-  //     });
-  //     Auth.login(data.signUp.token);
-  //   } catch (e) {
-  //     console.error(e);
-  //   }
-  // };
-
   return (
     <Wrapper>
-      <h3>Sign Up</h3>
-      <Form onSubmit={onSubmitData}>
-        <label htmlFor="username">Username</label>
-        <input
-          required
-          type="text"
-          id="username"
-          name="username"
-          placeholder="Username"
-          onChange={onChange}
-        />
-        <label htmlFor="email">Email</label>
-        <input
-          required
-          type="text"
-          id="email"
-          name="email"
-          placeholder="Email"
-          onChange={onChange}
-        />
-        <label htmlFor="email">Password</label>
-        <input
-          required
-          type="text"
-          id="password"
-          name="password"
-          placeholder="Password"
-          onChange={onChange}
-        />
-        <Button type="submit">Sign Up</Button>
-      </Form>
+      <React.Fragment>
+        <UserForm action={signUp} formType="signup" />
+        {loading && <p>Loading...</p>}
+        {error && <p>Error in creating account!</p>}
+      </React.Fragment>
     </Wrapper>
   );
 };

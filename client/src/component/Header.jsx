@@ -41,8 +41,8 @@ const Header = () => {
           <ButtonAsLink onClick={Auth.logout}>Log Out</ButtonAsLink>
         ) : (
           <p>
-            <Link to="/login">Log In</Link>
-            or (" ") <Link to="/signup">Sign Up</Link>
+            <Link to="/login">Log In </Link>
+            or <Link to="/signup">Sign Up</Link>
           </p>
         )}
       </UserState>
