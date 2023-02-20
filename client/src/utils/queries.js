@@ -34,3 +34,9 @@ export const GET_NOTE = gql`
     }
   }
 `;
+
+export const IS_LOGGED_IN = gql`
+  {
+    isLoggedIn @client
+  }
+`;
