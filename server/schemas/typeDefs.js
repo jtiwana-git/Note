@@ -45,8 +45,8 @@ const typeDefs = gql`
     newNote(content: String!): Note
     updateNote(id: ID!, content: String!): Note
     deleteNote(id: ID!): Boolean!
-    signUp(username: String!, email: String!, password: String!): Auth!
-    signIn(username: String!, email: String!, password: String!): Auth!
+    signUp(username: String!, email: String!, password: String!): Auth
+    signIn(username: String!, email: String!, password: String!): Auth
     toggleFavorite(id: ID!): Note!
   }
 `;

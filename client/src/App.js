@@ -45,9 +45,9 @@ function App() {
         <GlobalStyle />
         <Layout>
           <Routes>
+            <Route path="/" element={<Home />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/mynotes" element={<MyNotes />} />
-            <Route path="/" element={<Home />} />
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/note/:id" element={<NotePage />} />
             <Route

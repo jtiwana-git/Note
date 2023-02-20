@@ -1,7 +1,7 @@
 import { gql } from '@apollo/client';
 
 export const GET_NOTES = gql`
-  query Me($cursor: String) {
+  query NoteFeed($cursor: String) {
     noteFeed(cursor: $cursor) {
       cursor
       hasNextPage

@@ -18,7 +18,6 @@ const noteSchema = new Schema(
     createdAt: {
       type: Date,
       default: Date.now,
-      get: (date) => date.toLocaleDateString('MM/dd/yyyy'),
     },
     updatedAt: {
       type: Date,
