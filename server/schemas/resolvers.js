@@ -172,7 +172,7 @@ const resolvers = {
         return false;
       }
     },
-    // Update a note
+    // Update a note (works on 7/05/2023)
     updateNote: async (parent, { id, content }, { User }) => {
       if (User) {
         throw new AuthenticationError('You must be logged in to delete a note');
