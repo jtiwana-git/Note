@@ -17,7 +17,7 @@ const resolvers = {
       return await User.findOne({ username });
     },
 
-    // Find all users
+    // Find all users (worked on 07/05/2023)
     users: async () => {
       return await User.find({});
     },
