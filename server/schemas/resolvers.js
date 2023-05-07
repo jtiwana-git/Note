@@ -22,7 +22,7 @@ const resolvers = {
       return await User.find({});
     },
 
-    // Find the current user given the context
+    // Find the current user given the context (worked on 07/05/2023 for user information (id,username, email, avatar)
 
     me: async (parent, args, context) => {
       return await User.findOne({ _id: context.user._id });
