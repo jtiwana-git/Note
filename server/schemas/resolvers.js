@@ -12,7 +12,7 @@ const { default: mongoose } = require('mongoose');
 
 const resolvers = {
   Query: {
-    // Find a user by username
+    // Find a user by username (worked on 07/05/2023)
     user: async (parent, { username }) => {
       return await User.findOne({ username });
     },
