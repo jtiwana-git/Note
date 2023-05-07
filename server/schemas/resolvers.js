@@ -122,7 +122,7 @@ const resolvers = {
       return { token, user };
     },
 
-    // Login a user
+    // Login a user (works on 7/05/2023)
     signIn: async (parent, { email, username, password }) => {
       const user = await User.findOne({ $or: [{ username }, { email }] });
       if (!user) {
