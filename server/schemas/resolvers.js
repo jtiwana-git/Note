@@ -153,7 +153,7 @@ const resolvers = {
       });
     },
 
-    // Delete a note
+    // Delete a note (works on 7/05/2023)
     deleteNote: async (parent, { id }, context) => {
       if (!context.user) {
         throw new AuthenticationError('You must be logged in to delete a note');
