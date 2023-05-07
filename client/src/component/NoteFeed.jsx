@@ -12,15 +12,15 @@ const NoteWrapper = styled.div`
 `;
 
 const NoteFeed = ({ notes }) => {
-  return (
-    <div>
-      {notes.map((note) => (
-        <NoteWrapper key={note.id}>
-          <Link to={`note/${note.id}`}>Permalink</Link>
-        </NoteWrapper>
-      ))}
-    </div>
-  );
+  // return (
+  // <div>
+  //   {notes.map((note) => (
+  //     <NoteWrapper key={note.id}>
+  //       <Link to={`note/${note.id}`}>Permalink</Link>
+  //     </NoteWrapper>
+  //   ))}
+  // </div>
+  // );
 };
 
 export default NoteFeed;

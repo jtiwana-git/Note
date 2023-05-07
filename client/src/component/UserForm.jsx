@@ -41,13 +41,13 @@ const UserForm = (props) => {
   };
   return (
     <Wrapper>
-      {props.formType === 'signup' ? <h2>Sign Up</h2> : <h2>Sign IN</h2>}
+      {props.formType === 'signup' ? <h2>Sign up</h2> : <h2>Log in</h2>}
       <Form onSubmit={onSubmit}>
         {props.formType === 'signup' && (
           <React.Fragment>
             <label htmlFor="username">Username</label>
             <input
-              required
+              required="true"
               type="text"
               id="username"
               name="username"
@@ -56,6 +56,15 @@ const UserForm = (props) => {
             />
           </React.Fragment>
         )}
+        <label htmlFor="username">Username</label>
+        <input
+          required="true"
+          type="text"
+          id="username"
+          name="username"
+          placeholder="Username"
+          onChange={onChange}
+        />
         <label htmlFor="email">Email</label>
         <input
           required

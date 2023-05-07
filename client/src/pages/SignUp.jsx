@@ -44,19 +44,7 @@ const SignUp = (props) => {
     },
   });
 
-  const onSubmitData = async (event) => {
-    event.preventDefault();
-    console.log(values);
-
-    try {
-      const { data } = await signUp({
-        variables: { ...values },
-      });
-      Auth.login(data.signUp.token);
-    } catch (e) {
-      console.error(e);
-    }
-  };
+  // check if this code is in use
 
   return (
     <Wrapper>

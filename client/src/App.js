@@ -5,6 +5,7 @@ import {
   InMemoryCache,
   ApolloProvider,
   createHttpLink,
+  useQuery,
 } from '@apollo/client';
 
 import { setContext } from '@apollo/client/link/context';
@@ -17,6 +18,7 @@ import Favorites from './pages/Favorites';
 import NotePage from './pages/NotePage';
 import SignUp from './pages/SignUp';
 import SignIn from './pages/SignIn';
+import New from './pages/New';
 
 const httpLink = createHttpLink({
   uri: '/graphql',
@@ -51,6 +53,7 @@ function App() {
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/mynotes" element={<MyNotes />} />
+            <Route path="/newnote" element={<New />} />
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/note/:id" element={<NotePage />} />
             <Route

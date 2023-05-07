@@ -41,7 +41,7 @@ const Header = () => {
           <ButtonAsLink onClick={Auth.logout}>Log Out</ButtonAsLink>
         ) : (
           <p>
-            <Link to="/login">Log In </Link>
+            <Link to="/signin">Log In </Link>
             or <Link to="/signup">Sign Up</Link>
           </p>
         )}
