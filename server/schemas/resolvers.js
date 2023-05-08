@@ -38,17 +38,17 @@ const resolvers = {
     //   return findByNote;
     // },
 
-    // Get all notes
+    // Get all notes (Worked on 08/05/2023)
     notes: async (parent, args, context) => {
       const allNotes = await Note.find({ author: context.user._id });
       console.log('All Notes: ' + allNotes);
-      return allNotes;
+      return allNotes.sort({ _id: -1 });
     },
 
-    // Resolve the author info for a note when requested
+    // Resolve the author info for a note when requested (??)
     author: async (parent, args, context) => {
       console.log('Author: ' + Note.author);
-      return await User.findById(context.user._id, Note.author);
+      return await User.findById(Note.author);
     },
 
     // Resolve the favoritedBy info for a note when requested - TO BE SORTED (NOT WORKING)
