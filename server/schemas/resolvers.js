@@ -28,13 +28,15 @@ const resolvers = {
       return await User.findOne({ _id: context.user._id });
     },
 
-    // Find a note by ID
-    note: async (parent, args, context) => {
-      console.log('ONE - Note found by ID: ' + args.id);
-      const findNote = await Note.findById(args.id);
-      console.log('TWO - Note found by ID: ' + findNote);
-      return findNote.populate('author');
+    // Find a note by ID (WORKED ON 08/05/2023 (GraphQL Playground - ID and content))
+    note: async (parent, args) => {
+      return await Note.findById(args.id);
     },
+    // note: async (parent, args) => {
+    //   const findByNote = await Note.findById(args.id);
+    //   console.log('return Note: ');
+    //   return findByNote;
+    // },
 
     // Get all notes
     notes: async (parent, args, context) => {

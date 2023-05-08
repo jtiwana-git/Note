@@ -31,7 +31,7 @@ const typeDefs = gql`
   type Query {
     me: User!
     notes: [Note!]!
-    note(id: ID): Note
+    note(id: ID): Note!
     user(username: String!): User
     users: [User!]!
     author(id: ID!): User
