@@ -28,21 +28,16 @@ const resolvers = {
       return await User.findOne({ _id: context.user._id });
     },
 
-    // Find a note by ID (WORKED ON 08/05/2023 (GraphQL Playground - ID and content))
+    // Find a note by ID (WORKED ON 08/05/2023 (GraphQL Playground - ID and content for Note and ID and username for User (author)))
     note: async (parent, args) => {
-      return await Note.findById(args.id);
+      return await Note.findById(args.id).populate('author');
     },
-    // note: async (parent, args) => {
-    //   const findByNote = await Note.findById(args.id);
-    //   console.log('return Note: ');
-    //   return findByNote;
-    // },
 
     // Get all notes (Worked on 08/05/2023)
     notes: async (parent, args, context) => {
       const allNotes = await Note.find({ author: context.user._id });
       console.log('All Notes: ' + allNotes);
-      return allNotes.sort({ _id: -1 });
+      return allNotes;
     },
 
     // Resolve the author info for a note when requested (??)
@@ -52,19 +47,24 @@ const resolvers = {
     },
 
     // Resolve the favoritedBy info for a note when requested - TO BE SORTED (NOT WORKING)
-    favoritedBy: async (_, args, id) => {
-      const userBy = await User.find({
-        id: { $in: Note.favoritedBy },
-      });
-      console.log('Favorited By: ' + userBy);
-      return userBy;
+    // favoritedBy: async (_, args, id) => {
+    //   const userBy =
+    //   await User.find({
+    //     user_id: { $in: Note.favoritedBy },
+    //   });
+    //   console.log('Favorited By: ' + userBy);
+    //   return userBy;
+    // },
+
+    // copied from PDF (Book) ->
+
+    favoritedBy: async (note, args, { models }) => {
+      return await models.User.find({ _id: { $in: note.favoritedBy } });
     },
 
     // Resolve the list of favorited notes for a user when requested - WORKING
     favorites: async (parent, { user_id }, context) => {
-      const fav = Note.find({ favoritedBy: context.user._id }).sort({
-        id: -1,
-      });
+      const fav = Note.find({ favoritedBy: context.user._id });
       console.log('Favorites: ' + fav);
 
       return fav;
