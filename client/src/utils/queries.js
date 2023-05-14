@@ -1,24 +1,22 @@
 import { gql } from '@apollo/client';
 
 export const GET_NOTES = gql`
-  query NoteFeed {
-    noteFeed {
-      cursor
-      hasNextPage
-      notes {
-        id
-        createdAt
-        content
-        favoriteCount
-        author {
-          username
-          id
-          avatar
-        }
-      }
+noteFeed(cursor: $cursor) {
+  cursor
+  hasNextPage
+  notes {
+    id
+    createdAt
+    content
+    favoriteCount
+    author {
+      username
+      id
+      avatar
     }
   }
-`;
+ }
+}`;
 
 export const GET_NOTE = gql`
   query Note($noteId: ID) {

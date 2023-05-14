@@ -46,22 +46,6 @@ const resolvers = {
       return await User.findById(Note.author);
     },
 
-    // Resolve the favoritedBy info for a note when requested - TO BE SORTED (NOT WORKING)
-    // favoritedBy: async (_, args, id) => {
-    //   const userBy =
-    //   await User.find({
-    //     user_id: { $in: Note.favoritedBy },
-    //   });
-    //   console.log('Favorited By: ' + userBy);
-    //   return userBy;
-    // },
-
-    // copied from PDF (Book) ->
-
-    favoritedBy: async (note, args, { models }) => {
-      return await models.User.find({ _id: { $in: note.favoritedBy } });
-    },
-
     // Resolve the list of favorited notes for a user when requested - WORKING
     favorites: async (parent, { user_id }, context) => {
       const fav = Note.find({ favoritedBy: context.user._id });
@@ -69,9 +53,22 @@ const resolvers = {
 
       return fav;
     },
+
+    // Resolved the favoritedBy info for a note when requested
+    favoritedBy: async (note, args) => {
+      const getFavorite = await User.find({
+        user_id: [{ $in: Note.favoritedBy }],
+      });
+      console.log('GetFavorite: ' + getFavorite);
+
+      return getFavorite;
+
+      // return await User.find({ _id: { $in: note.favoritedBy } });
+    },
+
     noteFeed: async (parent, args, { cursor, username }, context) => {
       // Set the default limit to 10 (as a text the limit is ??????)
-      const limit = 2;
+      const limit = 5;
 
       // set the default hasNextPage value to false
       let hasNextPage = false;
@@ -202,19 +199,20 @@ const resolvers = {
       );
     },
 
-    // Favorite a note - - TO BE SORTED (NOT WORKING)
+    // Favorite a note - TO BE SORTED (On GraphQL Playground works with ID, content, Favourite Count but not with favoritedBy) - 14/05/2023
 
-    toggleFavorite: async (parent, { id, user }, context) => {
+    toggleFavorite: async (parent, { id, favoritedBy }, context) => {
       if (!context.user._id) {
         console.log('User is Logged in ' + context.user._id);
         throw new AuthenticationError();
       }
 
-      let noteCheck = await Note.findById(id);
-      console.log('NOTE CHECK ' + noteCheck);
+      // WORKS on 13/05/2023
+      let noteChecked = await Note.findById(id);
+      console.log('Checked NOTE ' + noteChecked);
 
-      const hasUser = noteCheck.favoritedBy.indexOf(context.user._id);
-      console.log('Index of...... ' + hasUser);
+      let hasUser = noteChecked.favoritedBy.indexOf(context.user._id);
+      console.log('Index of ' + hasUser);
 
       if (hasUser >= 0) {
         console.log('Remove User ' + hasUser);
@@ -234,7 +232,6 @@ const resolvers = {
           }
         );
       } else {
-        console.log('Add fav User ' + hasUser);
         return await Note.findByIdAndUpdate(
           id,
           {
@@ -247,7 +244,8 @@ const resolvers = {
           },
           {
             new: true,
-          }
+          },
+          console.log('Add fav User (+1) - ' + context.user.username)
         );
       }
     },

@@ -8,7 +8,7 @@ const typeDefs = gql`
     content: String!
     author: User!
     favoriteCount: Int!
-    favoritedBy: [User]
+    favoritedBy: [User!]
     createdAt: DateTime!
     updatedAt: DateTime!
   }
