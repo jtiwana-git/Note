@@ -40,10 +40,12 @@ const resolvers = {
       return allNotes;
     },
 
-    // Resolve the author info for a note when requested (??)
-    author: async (parent, args, context) => {
-      console.log('Author: ' + Note.author);
-      return await User.findById(Note.author);
+    // Resolve the author info for a note when requested - WORKED ON 15/05/2023
+    author: async (note, author, context) => {
+      const aut = await User.findById(author.id);
+      console.log('Author: ' + aut);
+
+      return aut;
     },
 
     // Resolve the list of favorited notes for a user when requested - WORKING
@@ -62,13 +64,11 @@ const resolvers = {
       console.log('GetFavorite: ' + getFavorite);
 
       return getFavorite;
-
-      // return await User.find({ _id: { $in: note.favoritedBy } });
     },
 
     noteFeed: async (parent, args, { cursor, username }, context) => {
       // Set the default limit to 10 (as a text the limit is ??????)
-      const limit = 5;
+      const limit = 10;
 
       // set the default hasNextPage value to false
       let hasNextPage = false;
