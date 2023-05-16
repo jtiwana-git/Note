@@ -7,16 +7,23 @@ import { GET_NOTES } from '../utils/queries';
 
 const Home = () => {
   const { data, loading, error, fetchMore } = useQuery(GET_NOTES);
+
   // // Data is undefined, loading is true, error is undefined
   if (loading) return <p>Loading...</p>;
   console.log(loading);
-
-  // if (error) return <p>Error!</p>;
-  // console.log(data);
-  // console.log(GET_NOTES);
+  // // If there is an error fetching the data, display an error message
+  if (error) return <p>Error!</p>;
 
   return (
-    <h1>HOME</h1>
+    <div>
+      <h1>HOME</h1>
+      {console.log(data)}
+      The data loaded
+      <p>
+        Queries - Adding author not working - GraphQL needs to be reviewed for
+        noteFeed
+      </p>
+    </div>
     // <React.Fragment>
     //   {console.log(data)}
     //   <NoteFeed notes={data.noteFeed} />

@@ -12,12 +12,12 @@ const { default: mongoose } = require('mongoose');
 
 const resolvers = {
   Query: {
-    // Find a user by username (worked on 07/05/2023)
+    // Find a user by username (worked on 15/05/2023)
     user: async (parent, { username }) => {
       return await User.findOne({ username });
     },
 
-    // Find all users (worked on 07/05/2023)
+    // Find all users (worked on 15/05/2023)
     users: async () => {
       return await User.find({});
     },
@@ -33,9 +33,9 @@ const resolvers = {
       return await Note.findById(args.id).populate('author');
     },
 
-    // Get all notes (Worked on 08/05/2023)
+    // Get all notes (Worked on 16/05/2023)
     notes: async (parent, args, context) => {
-      const allNotes = await Note.find({ author: context.user._id });
+      const allNotes = await Note.find({}).populate('author');
       console.log('All Notes: ' + allNotes);
       return allNotes;
     },
@@ -201,7 +201,7 @@ const resolvers = {
 
     // Favorite a note - TO BE SORTED (On GraphQL Playground works with ID, content, Favourite Count but not with favoritedBy) - 14/05/2023
 
-    toggleFavorite: async (parent, { id, favoritedBy }, context) => {
+    toggleFavorite: async (parent, { id, user }, context) => {
       if (!context.user._id) {
         console.log('User is Logged in ' + context.user._id);
         throw new AuthenticationError();
@@ -236,7 +236,7 @@ const resolvers = {
           id,
           {
             $push: {
-              favoritedBy: mongoose.Types.ObjectId(context.user._id),
+              favoritedBy: mongoose.Types.ObjectId(user._id),
             },
             $inc: {
               favoriteCount: 1,
