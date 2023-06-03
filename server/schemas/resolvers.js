@@ -9,58 +9,56 @@ const Mongoose = require('mongoose');
 const { insertMany } = require('../models/Note');
 const { populate } = require('../models/User');
 const { default: mongoose } = require('mongoose');
+const auth = require('../utils/auth.js');
 
 const resolvers = {
   Query: {
-    // Find a user by username (worked on 15/05/2023)
-    user: async (parent, { username }) => {
-      return await User.findOne({ username });
-    },
-
-    // Find all users (worked on 15/05/2023)
-    users: async () => {
-      return await User.find({});
-    },
-
-    // Find the current user given the context (worked on 07/05/2023 for user information (id,username, email, avatar)
-
+    // Get the current user
     me: async (parent, args, context) => {
       return await User.findOne({ _id: context.user._id });
     },
 
-    // Find a note by ID (WORKED ON 08/05/2023 (GraphQL Playground - ID and content for Note and ID and username for User (author)))
+    // Find user by username
+    user: async (parent, { username }) => {
+      return await User.findOne({ username });
+    },
+
+    // Find all users
+    users: async () => {
+      return await User.find().limit(100);
+    },
+
+    // Find note by note ID
     note: async (parent, args) => {
-      return await Note.findById(args.id).populate('author');
+      return Note.findById(args.id);
     },
 
-    // Get all notes (Worked on 16/05/2023)
+    // Find all notes
     notes: async (parent, args, context) => {
-      const allNotes = await Note.find({}).populate('author');
-      console.log('All Notes: ' + allNotes);
-      return allNotes;
+      return await Note.find().limit(100);
     },
 
-    // Resolve the author info for a note when requested - WORKED ON 15/05/2023
-    author: async (note, author, context) => {
+    // Resolve the author info for a note when requested
+    author: async (parent, author, context) => {
       const aut = await User.findById(author.id);
       console.log('Author: ' + aut);
 
       return aut;
     },
 
-    // Resolve the list of favorited notes for a user when requested - WORKING
-    favorites: async (parent, { user_id }, context) => {
-      const fav = Note.find({ favoritedBy: context.user._id });
+    // Resolve the list of favorites for a user when requested
+    favorites: async (parent, context) => {
+      const fav = Note.find({ favoritedBy: context.user._id }).sort({
+        _id: -1,
+      });
       console.log('Favorites: ' + fav);
 
       return fav;
     },
 
     // Resolved the favoritedBy info for a note when requested
-    favoritedBy: async (note, args) => {
-      const getFavorite = await User.find({
-        user_id: [{ $in: Note.favoritedBy }],
-      });
+    favoritedBy: async (parent, note) => {
+      const getFavorite = await User.find({ _id: { $in: note.favoritedBy } });
       console.log('GetFavorite: ' + getFavorite);
 
       return getFavorite;
@@ -68,7 +66,7 @@ const resolvers = {
 
     noteFeed: async (parent, args, { cursor, username }, context) => {
       // Set the default limit to 10 (as a text the limit is ??????)
-      const limit = 10;
+      const limit = 100;
 
       // set the default hasNextPage value to false
       let hasNextPage = false;
@@ -111,91 +109,96 @@ const resolvers = {
     },
   },
   Mutation: {
-    // Create a user
-    signUp: async (parent, args) => {
-      const user = await User.create(args);
+    // Create an account
+    signUp: async (parent, { username, email, password }) => {
+      const user = await User.create({ username, email, password });
       const token = signToken(user);
-
-      console.log(user + ' You have successfully created an account!');
-
+      console.log(user + ' Created account and the token ID  ' + token);
       return { token, user };
     },
 
-    // Login a user (works on 7/05/2023)
-    signIn: async (parent, { email, username, password }) => {
-      const user = await User.findOne({ $or: [{ username }, { email }] });
+    // Sign in to an account
+    signIn: async (parent, { username, email, password }) => {
+      const user = await User.findOne({ $or: [{ email }, { username }] });
       if (!user) {
-        throw new AuthenticationError('Incorrect credentials');
+        throw new AuthenticationError('Cannot find the credentials');
       }
+      const correctPw = await user.isCorrectPassword(password);
 
-      const valid = await bcrypt.compare(password, user.password);
-      if (!valid) {
-        throw new AuthenticationError('Incorrect credentials');
+      if (!correctPw) {
+        throw new AuthenticationError('Incorrect password/credentials');
       }
-
       const token = signToken(user);
-      console.log(token + ' You have successfully signed in!');
-
+      console.log(user + ' Signed in and the token ID  ' + token);
       return { token, user };
     },
 
-    // Create a note (works on 7/05/2023)
-    newNote: async (parent, args, context) => {
-      if (!context.user) {
-        throw new AuthenticationError('You must be logged in to create a note');
+    // add new note
+    newNote: async (parent, { content }, context) => {
+      if (context.user) {
+        const note = await Note.create({
+          content,
+          author: context.user.username,
+        });
+        await User.findOneAndUpdate(
+          { _id: context.user._id },
+          { $addToSet: { notes: note._id } }
+        );
+        return note;
       }
-      console.log('Note created by ' + context.user.username);
-      console.log('Note created by Author ID ' + context.user._id);
-      return await Note.create({
-        content: args.content,
-        author: Mongoose.Types.ObjectId(context.user._id),
-      });
+      throw new AuthenticationError('You need to be signed in!');
     },
 
-    // Delete a note (works on 7/05/2023)
+    // Delete a note (CHECK!!)
     deleteNote: async (parent, { id }, context) => {
       if (!context.user) {
-        throw new AuthenticationError('You must be logged in to delete a note');
+        throw new AuthenticationError(
+          'You need to be signed in! to delete a note'
+        );
       }
-      const deleteNote = await Note.findByIdAndRemove(id);
-      if (deleteNote && String(deleteNote.author) !== context.user._id) {
+      const delNote = await Note.findByIdAndRemove(id, {
+        author: context.user.username,
+      });
+      if (delNote && String(delNote.author) === context.user._id) {
         throw new AuthenticationError(
           'You do not have permission to delete this note'
         );
       }
+      console.log('INFO -  ' + delNote);
       try {
-        await deleteNote.remove('Deleted note');
+        await User.findOneAndUpdate(
+          { _id: context.user._id },
+          { $pull: { notes: id } }
+        );
         return true;
-      } catch (err) {
-        console.log(err);
+      } catch (error) {
+        console.log(error);
         return false;
       }
     },
-    // Update a note (works on 7/05/2023)
-    updateNote: async (parent, { id, content }, { User }) => {
-      if (User) {
-        throw new AuthenticationError('You must be logged in to delete a note');
-      }
 
-      const noteUpdate = await Note.findById(Note.id);
-
-      if (noteUpdate && String(noteUpdate.author) !== User.id) {
+    // Update a note
+    updateNote: async (parent, { id, content }, context) => {
+      if (!context.user) {
         throw new AuthenticationError(
-          'You do not have permisson to delete this note'
+          'You need to be signed in! to update a note'
         );
       }
+
+      const noteUpdate = await Note.findById(id);
+      console.log('Find note -  ' + noteUpdate);
+
+      if (noteUpdate && String(noteUpdate.author) === context.user._id) {
+        throw new AuthenticationError(
+          'You do not have permission to update this note'
+        );
+      }
+      console.log('Check! -  ' + noteUpdate);
+
       return await Note.findOneAndUpdate(
-        {
-          _id: id,
-        },
-        {
-          $set: {
-            content,
-          },
-        },
-        {
-          new: true,
-        }
+        { _id: id },
+        { $set: { content } },
+        { new: true }
       );
     },
 
@@ -236,7 +239,7 @@ const resolvers = {
           id,
           {
             $push: {
-              favoritedBy: mongoose.Types.ObjectId(user._id),
+              favoritedBy: mongoose.Types.ObjectId(context.user._id),
             },
             $inc: {
               favoriteCount: 1,

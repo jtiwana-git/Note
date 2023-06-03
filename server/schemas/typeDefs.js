@@ -3,23 +3,23 @@ const { gql } = require('apollo-server-express');
 const typeDefs = gql`
   scalar DateTime
 
-  type Note {
-    id: ID!
-    content: String!
-    author: User!
-    favoriteCount: Int!
-    favoritedBy: [User!]
-    createdAt: DateTime!
-    updatedAt: DateTime!
-  }
-
   type User {
-    id: ID!
+    _id: ID!
     username: String!
     email: String!
     avatar: String
-    notes: [Note!]!
+    notes: [Note]!
     favorites: String
+  }
+
+  type Note {
+    _id: ID!
+    content: String!
+    author: String
+    favoriteCount: Int
+    favoritedBy: [User]
+    createdAt: DateTime!
+    updatedAt: DateTime!
   }
 
   type NoteFeed {
@@ -29,8 +29,8 @@ const typeDefs = gql`
   }
 
   type Query {
-    me: User!
-    notes: [Note!]!
+    me: User
+    notes: [Note]!
     note(id: ID): Note!
     user(username: String!): User
     users: [User!]!
