@@ -11,9 +11,9 @@ const noteSchema = new Schema(
       maxLength: 500,
     },
     author: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: 'User',
       required: true,
-      trim: true,
     },
     createdAt: {
       type: Date,

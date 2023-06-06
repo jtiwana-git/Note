@@ -33,9 +33,12 @@ const resolvers = {
       return Note.findById(args.id);
     },
 
-    // Find all notes
-    notes: async (parent, args, context) => {
-      return await Note.find().limit(100);
+    // Find all notes with author info
+    notes: async (parent, args) => {
+      const allNotes = Note.find().limit(100).populate('author');
+      console.log('All Notes: ' + allNotes);
+      // return await Note.find().limit(100).populate('author');
+      return allNotes;
     },
 
     // Resolve the author info for a note when requested
@@ -64,49 +67,7 @@ const resolvers = {
       return getFavorite;
     },
 
-    noteFeed: async (parent, args, { cursor, username }, context) => {
-      // Set the default limit to 10 (as a text the limit is ??????)
-      const limit = 100;
-
-      // set the default hasNextPage value to false
-      let hasNextPage = false;
-
-      // if no cursor is passed the default query will be empty
-      // this will pull the newest notes from the db
-      let cursorQuery = {};
-      console.log('Line 80 - EMPTY Cursor: ' + cursorQuery);
-
-      // if there is a cursor
-      // our query will look for notes with an ObjectId less than that of the cursor
-      if (cursor) {
-        cursorQuery = { _id: { $lt: args.cursor } };
-      }
-      console.log('Line 87 - Cursor: ' + cursorQuery);
-
-      // find the limit + 1 of notes in our db, sorted newest to oldest
-      let notes = await Note.find(cursorQuery)
-        .sort({ _id: -1 })
-        .limit(limit + 1);
-      console.log('Line 93 - Notes: ' + notes);
-
-      // if the number of notes we find exceeds our limit
-      // set hasNextPage to true & trim the notes to the limit
-      if (notes.length > limit) {
-        hasNextPage = true;
-        notes = notes.slice(0, -1);
-      }
-
-      // the new cursor will be the Mongo ObjectID of the last item in the feed array
-      const newCursor = notes[notes.length - 1]._id;
-
-      console.log('Line 105 - Last item in array feed: ' + newCursor);
-
-      return {
-        notes,
-        cursor: newCursor,
-        hasNextPage,
-      };
-    },
+    noteFeed: async (parent, args, { cursor }, author, context) => {},
   },
   Mutation: {
     // Create an account
