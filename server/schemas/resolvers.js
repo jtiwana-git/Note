@@ -28,9 +28,11 @@ const resolvers = {
       return await User.find().limit(100);
     },
 
-    // Find note by note ID
-    note: async (parent, args) => {
-      return Note.findById(args.id);
+    // Find note by note ID with author info
+    note: async (parent, args, context) => {
+      const note = await Note.findById(args.id);
+      console.log('Note: ' + note);
+      return note;
     },
 
     // Find all notes with author info
@@ -184,7 +186,9 @@ const resolvers = {
           id,
           {
             $pull: {
-              favoritedBy: mongoose.Types.ObjectId(context.user._id),
+              favoritedBy:
+                mongoose.Types.ObjectId(context.user._id) ||
+                context.user.username,
             },
             $inc: {
               favoriteCount: -1,
@@ -200,7 +204,9 @@ const resolvers = {
           id,
           {
             $push: {
-              favoritedBy: mongoose.Types.ObjectId(context.user._id),
+              favoritedBy:
+                mongoose.Types.ObjectId(context.user._id) ||
+                context.user.username,
             },
             $inc: {
               favoriteCount: 1,
