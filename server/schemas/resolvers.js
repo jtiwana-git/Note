@@ -15,7 +15,7 @@ const resolvers = {
   Query: {
     // Get the current user
     me: async (parent, args, context) => {
-      return await User.findOne({ _id: context.user._id });
+      return await User.findById(context.user._id);
     },
 
     // Find user by username
@@ -30,25 +30,26 @@ const resolvers = {
 
     // Find note by note ID with author info
     note: async (parent, args, context) => {
-      const note = await Note.findById(args.id);
+      const note = await Note.findById(args.id).populate('author');
       console.log('Note: ' + note);
       return note;
     },
 
     // Find all notes with author info
-    notes: async (parent, args) => {
-      const allNotes = Note.find().limit(100).populate('author');
-      console.log('All Notes: ' + allNotes);
-      // return await Note.find().limit(100).populate('author');
-      return allNotes;
+    notes: async (parent, args, context) => {
+      return await Note.find({
+        author: context.user._id || context.user.username,
+      }).populate('author');
     },
 
     // Resolve the author info for a note when requested
-    author: async (parent, author, context) => {
-      const aut = await User.findById(author.id);
-      console.log('Author: ' + aut);
-
-      return aut;
+    author: async (author, args, context) => {
+      const user = await User.findById({
+        author: Note.author,
+        _id: context.user._id || context.user.username,
+      });
+      console.log('Author: ' + user);
+      return user;
     },
 
     // Resolve the list of favorites for a user when requested
@@ -97,11 +98,11 @@ const resolvers = {
     },
 
     // add new note
-    newNote: async (parent, { content }, context) => {
+    newNote: async (parent, { content, author }, context) => {
       if (context.user) {
         const note = await Note.create({
           content,
-          author: context.user.username,
+          author: author.id,
         });
         await User.findOneAndUpdate(
           { _id: context.user._id },
