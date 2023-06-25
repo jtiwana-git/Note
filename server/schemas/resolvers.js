@@ -53,8 +53,12 @@ const resolvers = {
     },
 
     // Resolve the list of favorites for a user when requested
+
     favorites: async (parent, context) => {
-      const fav = Note.find({ favoritedBy: context.user._id }).sort({
+      const fav = Note.find({
+        favoritedBy: context.user._id,
+        _id: context.user._id || context.user.username,
+      }).sort({
         _id: -1,
       });
       console.log('Favorites: ' + fav);
@@ -63,8 +67,11 @@ const resolvers = {
     },
 
     // Resolved the favoritedBy info for a note when requested
-    favoritedBy: async (parent, note) => {
-      const getFavorite = await User.find({ _id: { $in: note.favoritedBy } });
+    favoritedBy: async (parent, note, context) => {
+      const getFavorite = await User.find({
+        _id: { $in: note.favoritedBy },
+        favoritedBy: context.user._id || context.user.username,
+      });
       console.log('GetFavorite: ' + getFavorite);
 
       return getFavorite;
@@ -98,11 +105,11 @@ const resolvers = {
     },
 
     // add new note
-    newNote: async (parent, { content, author }, context) => {
+    newNote: async (parent, { content }, context) => {
       if (context.user) {
         const note = await Note.create({
           content,
-          author: author.id,
+          author: context.user._id || context.user.username,
         });
         await User.findOneAndUpdate(
           { _id: context.user._id },
@@ -110,38 +117,33 @@ const resolvers = {
         );
         return note;
       }
-      throw new AuthenticationError('You need to be signed in!');
     },
 
-    // Delete a note (CHECK!!)
-    deleteNote: async (parent, { id }, context) => {
+    // Delete a note (CHECK!! - Any users can delete notes - TO FIX!!)
+    deleteNote: async (_, { id, author }, context) => {
       if (!context.user) {
         throw new AuthenticationError(
           'You need to be signed in! to delete a note'
         );
       }
-      const delNote = await Note.findByIdAndRemove(id, {
-        author: context.user.username,
-      });
-      if (delNote && String(delNote.author) === context.user._id) {
+
+      const note = await Note.findById(id);
+      console.log('Find note -  ' + note);
+      if (note && String(author) === context.user) {
+        console.error('Check! -  ' + note);
         throw new AuthenticationError(
           'You do not have permission to delete this note'
         );
       }
-      console.log('INFO -  ' + delNote);
       try {
-        await User.findOneAndUpdate(
-          { _id: context.user._id },
-          { $pull: { notes: id } }
-        );
+        await note.remove();
         return true;
       } catch (error) {
-        console.log(error);
         return false;
       }
     },
 
-    // Update a note
+    // Update a note (CHECK!! - Any users can update notes - TO FIX!!)
     updateNote: async (parent, { id, content }, context) => {
       if (!context.user) {
         throw new AuthenticationError(
@@ -152,7 +154,7 @@ const resolvers = {
       const noteUpdate = await Note.findById(id);
       console.log('Find note -  ' + noteUpdate);
 
-      if (noteUpdate && String(noteUpdate.author) === context.user._id) {
+      if (noteUpdate && String(noteUpdate.author) === context.user.id) {
         throw new AuthenticationError(
           'You do not have permission to update this note'
         );
@@ -168,9 +170,9 @@ const resolvers = {
 
     // Favorite a note - TO BE SORTED (On GraphQL Playground works with ID, content, Favourite Count but not with favoritedBy) - 14/05/2023
 
-    toggleFavorite: async (parent, { id, user }, context) => {
-      if (!context.user._id) {
-        console.log('User is Logged in ' + context.user._id);
+    toggleFavorite: async (username, { id }, context) => {
+      if (!context.user) {
+        console.log('User is Logged in ' + context.user);
         throw new AuthenticationError();
       }
 
@@ -178,18 +180,19 @@ const resolvers = {
       let noteChecked = await Note.findById(id);
       console.log('Checked NOTE ' + noteChecked);
 
-      let hasUser = noteChecked.favoritedBy.indexOf(context.user._id);
+      let hasUser = noteChecked.favoritedBy.indexOf(
+        context.user._id || username
+      );
       console.log('Index of ' + hasUser);
 
       if (hasUser >= 0) {
-        console.log('Remove User ' + hasUser);
+        console.log('Remove User ' + context.user.username);
         return await Note.findByIdAndUpdate(
           id,
+
           {
             $pull: {
-              favoritedBy:
-                mongoose.Types.ObjectId(context.user._id) ||
-                context.user.username,
+              favoritedBy: mongoose.Types.ObjectId(context.user._id),
             },
             $inc: {
               favoriteCount: -1,
@@ -205,9 +208,7 @@ const resolvers = {
           id,
           {
             $push: {
-              favoritedBy:
-                mongoose.Types.ObjectId(context.user._id) ||
-                context.user.username,
+              favoritedBy: mongoose.Types.ObjectId(context.user._id),
             },
             $inc: {
               favoriteCount: 1,
