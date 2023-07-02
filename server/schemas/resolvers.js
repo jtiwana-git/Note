@@ -77,7 +77,50 @@ const resolvers = {
       return getFavorite;
     },
 
-    noteFeed: async (parent, args, { cursor }, author, context) => {},
+    noteFeed: async (parent, { cursor }, context) => {
+      // hard code the limit to 100 items
+      const limit = 100;
+
+      // set the default hasNextPage value to false
+      let hasNextPage = false;
+
+      // if no cursor is passed the default query will be empty
+      // this will pull the newest notes from the db
+      let cursorQuery = {};
+
+      // if there is a cursor
+      // our query will look for notes with an ObjectId less than that of the cursor
+      if (cursor) {
+        cursorQuery = { _id: { $lt: cursor } };
+      }
+      console.log('if there is a cursor: ' + cursor);
+
+      let allNotes = await Note.find({
+        // author: context.user._id || context.user.username,
+      });
+      console.log('All Notes: ' + allNotes);
+
+      // find the limit + 1 of notes in our db, sorted newest to oldest
+      allNotes = Note.find(cursorQuery)
+        .sort({ _id: -1 })
+        .limit(limit + 1);
+
+      // if the number of notes we find exceeds our limit
+      // set hasNextPage to true & trim the notes to the limit
+      if (allNotes.length > limit) {
+        hasNextPage = true;
+        allNotes = allNotes.slice(0, -1);
+      }
+
+      // the new cursor will be the Mongo ObjectID of the last item in the feed array
+      const newCursor = allNotes[allNotes.length - 1];
+
+      return {
+        allNotes,
+        cursor: newCursor,
+        hasNextPage,
+      };
+    },
   },
   Mutation: {
     // Create an account
@@ -168,9 +211,9 @@ const resolvers = {
       );
     },
 
-    // Favorite a note - TO BE SORTED (On GraphQL Playground works with ID, content, Favourite Count but not with favoritedBy) - 14/05/2023
+    // Favorite a note - TO BE SORTED
 
-    toggleFavorite: async (username, { id }, context) => {
+    toggleFavorite: async (_, { id }, context) => {
       if (!context.user) {
         console.log('User is Logged in ' + context.user);
         throw new AuthenticationError();
@@ -184,15 +227,13 @@ const resolvers = {
         context.user._id || username
       );
       console.log('Index of ' + hasUser);
-
       if (hasUser >= 0) {
         console.log('Remove User ' + context.user.username);
         return await Note.findByIdAndUpdate(
           id,
-
           {
             $pull: {
-              favoritedBy: mongoose.Types.ObjectId(context.user._id),
+              favoritedBy: context.user._id || context.user.username,
             },
             $inc: {
               favoriteCount: -1,
@@ -208,8 +249,9 @@ const resolvers = {
           id,
           {
             $push: {
-              favoritedBy: mongoose.Types.ObjectId(context.user._id),
+              favoritedBy: context.user._id || context.user.username,
             },
+
             $inc: {
               favoriteCount: 1,
             },
